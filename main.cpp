@@ -1,3 +1,14 @@
+/**
+语法树
+ A*B+C的语法树：
+      (+)
+     / \
+    /   \
+  (*)    C
+  / \
+ A   B
+
+ */
 #include <iostream>
 #include <cstdlib>
 #include <string>
