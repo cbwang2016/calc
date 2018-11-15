@@ -42,7 +42,10 @@ private:
         * @return false if failed
         */
         virtual bool addChild(OperatorNode *node) {
-            if (node->getOperatorPrecedence() >= this->getOperatorPrecedence()) {
+            if (hasOpenLeftBracket(this)) {
+                return childs.back()->addChild(node);
+            }
+            if (node->getOperatorPrecedence() >= this->getOperatorPrecedence() && node->getType() != "value") {
                 node->parentNode = this->parentNode;
                 this->parentNode->childs.pop_back();
                 this->parentNode->childs.push_back(node);
@@ -130,6 +133,8 @@ private:
         double getValue() override { return 0; }
 
         bool isFull() override { return true; }
+
+        bool addChild(OperatorNode *node) override { return false; }
     };
 
     class OperatorPlus : public OperatorNode {
@@ -188,6 +193,15 @@ private:
     };
 
 private:
+    static bool hasOpenLeftBracket(OperatorNode *node) {
+        if (node->getType() == "(" && !node->isFull())
+            return true;
+        for (OperatorNode *tmp : node->childs)
+            if (hasOpenLeftBracket(tmp))
+                return true;
+        return false;
+    }
+
     void deleteIterator(OperatorNode *node) {
         for (OperatorNode *i : node->childs)
             deleteIterator(i);
@@ -202,6 +216,18 @@ public:
         if (root != nullptr) {
             deleteIterator(root);
         }
+    }
+
+    // For debug
+    void printTree(OperatorNode *node, int depth) {
+        for (auto i = 0; i < depth; i++)
+            cout << "  ";
+        cout << node->getType();
+        if (node->getType() == "value")
+            cout << ", " << node->getValue();
+        cout << endl;
+        for (OperatorNode *t : node->childs)
+            printTree(t, depth + 1);
     }
 
     bool parseFromStdIn() {
@@ -275,7 +301,7 @@ public:
             }
             if (!flag) {
                 delete tmp;
-                cout << "syntax error" << endl;
+                cout << "Syntax error" << endl;
                 return true;
             }
         }
