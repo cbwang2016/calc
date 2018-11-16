@@ -235,9 +235,9 @@ private:
 
         double getValue() override {
             double n = children.at(0)->getValue();
-            double intpart;
-            if (modf(n, &intpart) == 0.0 && intpart >= 0 && intpart < FACTORIAL_MAX) {
-                return fact(intpart);
+            double int_part;
+            if (modf(n, &int_part) == 0.0 && int_part >= 0 && int_part < FACTORIAL_MAX) {
+                return fact(int_part);
             } else
                 throw runtime_error{"invalid value for factorial"};
         }
