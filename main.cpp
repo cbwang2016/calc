@@ -206,7 +206,12 @@ private:
 
         unsigned int getOperatorTypeID() override { return TYPE_ID_DIVIDE; }
 
-        double getValue() override { return childs.at(0)->getValue() / childs.at(1)->getValue(); }
+        double getValue() override {
+            double d = childs.at(1)->getValue();
+            if (d == 0)
+                throw runtime_error{"divide by zero"};
+            return childs.at(0)->getValue() / d;
+        }
 
         bool isFull() override { return childs.size() == 2; }
     };
