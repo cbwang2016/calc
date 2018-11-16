@@ -1,10 +1,10 @@
 /**
 语法树
  A*B+C的语法树：
-      (+)
+      +
      / \
     /   \
-  (*)    C
+   *     C
   / \
  A   B
 
@@ -71,31 +71,31 @@ private:
         */
         virtual bool addChild(OperatorNode *node) {
             if (hasOpenLeftBracket(this)) {
-                return childs.back()->addChild(node);
+                return children.back()->addChild(node);
             }
             if (node->getOperatorPrecedence() >= this->getOperatorPrecedence() &&
                 node->getOperatorTypeID() != TYPE_ID_VALUE) {
                 if (this->parentNode == nullptr)
                     return false;
                 node->parentNode = this->parentNode;
-                this->parentNode->childs.pop_back();
-                this->parentNode->childs.push_back(node);
+                this->parentNode->children.pop_back();
+                this->parentNode->children.push_back(node);
 
-                node->childs.push_back(this);
+                node->children.push_back(this);
                 this->parentNode = node;
                 return true;
             } else {
                 if (isFull())
-                    return childs.back()->addChild(node);
+                    return children.back()->addChild(node);
                 if (node->getOperatorTypeID() == TYPE_ID_RIGHT_BRACKET || this->getOperatorTypeID() == TYPE_ID_VALUE)
                     return false;
                 node->parentNode = this;
-                childs.push_back(node);
+                children.push_back(node);
                 return true;
             }
         }
 
-        vector<OperatorNode *> childs{};
+        vector<OperatorNode *> children{};
         OperatorNode *parentNode = nullptr;
     };
 
@@ -120,9 +120,9 @@ private:
         unsigned int getOperatorTypeID() override { return TYPE_ID_LEFT_BRACKET; }
 
         double getValue() override {
-            if (childs.empty() || childs.back()->getOperatorTypeID() != TYPE_ID_RIGHT_BRACKET)
+            if (children.empty() || children.back()->getOperatorTypeID() != TYPE_ID_RIGHT_BRACKET)
                 throw runtime_error{"\")\" expected"};
-            return childs[0]->getValue();
+            return children[0]->getValue();
         }
 
         bool isFull() override { return hasRightBracketAttached; }
@@ -131,20 +131,20 @@ private:
             if (node->getOperatorTypeID() == TYPE_ID_RIGHT_BRACKET) {
                 if (hasRightBracketAttached)
                     return false;
-                if (childs.empty() || !childs[0]->addChild(node)) {
+                if (children.empty() || !children[0]->addChild(node)) {
                     node->parentNode = this;
-                    childs.push_back(node);
+                    children.push_back(node);
                     hasRightBracketAttached = true;
                 }
                 return true;
             }
-            if (childs.empty()) {
+            if (children.empty()) {
                 if (node->getOperatorTypeID() == TYPE_ID_MINUS) {
                     this->addChild(new OperatorValue(0));
                     return OperatorNode::addChild(node);
                 }
                 node->parentNode = this;
-                childs.push_back(node);
+                children.push_back(node);
                 return true;
             }
             return OperatorNode::addChild(node);
@@ -173,9 +173,9 @@ private:
 
         unsigned int getOperatorTypeID() override { return TYPE_ID_PLUS; }
 
-        double getValue() override { return childs.at(0)->getValue() + childs.at(1)->getValue(); }
+        double getValue() override { return children.at(0)->getValue() + children.at(1)->getValue(); }
 
-        bool isFull() override { return childs.size() == 2; }
+        bool isFull() override { return children.size() == 2; }
     };
 
     class OperatorMinus : public OperatorNode {
@@ -184,9 +184,9 @@ private:
 
         unsigned int getOperatorTypeID() override { return TYPE_ID_MINUS; }
 
-        double getValue() override { return childs.at(0)->getValue() - childs.at(1)->getValue(); }
+        double getValue() override { return children.at(0)->getValue() - children.at(1)->getValue(); }
 
-        bool isFull() override { return childs.size() == 2; }
+        bool isFull() override { return children.size() == 2; }
     };
 
     class OperatorTimes : public OperatorNode {
@@ -195,9 +195,9 @@ private:
 
         unsigned int getOperatorTypeID() override { return TYPE_ID_TIMES; }
 
-        double getValue() override { return childs.at(0)->getValue() * childs.at(1)->getValue(); }
+        double getValue() override { return children.at(0)->getValue() * children.at(1)->getValue(); }
 
-        bool isFull() override { return childs.size() == 2; }
+        bool isFull() override { return children.size() == 2; }
     };
 
     class OperatorDivide : public OperatorNode {
@@ -207,13 +207,13 @@ private:
         unsigned int getOperatorTypeID() override { return TYPE_ID_DIVIDE; }
 
         double getValue() override {
-            double d = childs.at(1)->getValue();
+            double d = children.at(1)->getValue();
             if (d == 0)
                 throw runtime_error{"divide by zero"};
-            return childs.at(0)->getValue() / d;
+            return children.at(0)->getValue() / d;
         }
 
-        bool isFull() override { return childs.size() == 2; }
+        bool isFull() override { return children.size() == 2; }
     };
 
     class OperatorPower : public OperatorNode {
@@ -222,9 +222,9 @@ private:
 
         unsigned int getOperatorTypeID() override { return TYPE_ID_POWER; }
 
-        double getValue() override { return pow(childs.at(0)->getValue(), childs.at(1)->getValue()); }
+        double getValue() override { return pow(children.at(0)->getValue(), children.at(1)->getValue()); }
 
-        bool isFull() override { return childs.size() == 2; }
+        bool isFull() override { return children.size() == 2; }
     };
 
     class OperatorFactorial : public OperatorNode {
@@ -234,7 +234,7 @@ private:
         unsigned int getOperatorTypeID() override { return TYPE_ID_FACTORIAL; }
 
         double getValue() override {
-            double n = childs.at(0)->getValue();
+            double n = children.at(0)->getValue();
             double intpart;
             if (modf(n, &intpart) == 0.0 && intpart >= 0 && intpart < FACTORIAL_MAX) {
                 return fact(intpart);
@@ -242,24 +242,23 @@ private:
                 throw runtime_error{"invalid value for factorial"};
         }
 
-        bool isFull() override { return childs.size() == 1; }
+        bool isFull() override { return children.size() == 1; }
 
     private:
         double fact(double n) { return n == 0 ? 1 : n * fact(n - 1); }
     };
 
-private:
     static bool hasOpenLeftBracket(OperatorNode *node) {
         if (node->getOperatorTypeID() == TYPE_ID_LEFT_BRACKET && !node->isFull())
             return true;
-        for (OperatorNode *tmp : node->childs)
+        for (OperatorNode *tmp : node->children)
             if (hasOpenLeftBracket(tmp))
                 return true;
         return false;
     }
 
     void deleteIterator(OperatorNode *node) {
-        for (OperatorNode *i : node->childs)
+        for (OperatorNode *i : node->children)
             deleteIterator(i);
         delete node;
     }
@@ -269,21 +268,7 @@ public:
     SyntaxTree() = default;
 
     ~SyntaxTree() {
-        if (root != nullptr) {
-            deleteIterator(root);
-        }
-    }
-
-    // For debug
-    void printTree(OperatorNode *node, int depth) {
-        for (auto i = 0; i < depth; i++)
-            cout << "  ";
-        cout << node->getOperatorTypeID();
-        if (node->getOperatorTypeID() == TYPE_ID_VALUE)
-            cout << ", " << node->getValue();
-        cout << endl;
-        for (OperatorNode *t : node->childs)
-            printTree(t, depth + 1);
+        deleteIterator(root);
     }
 
     bool parseFromStdIn() {
@@ -345,9 +330,9 @@ public:
                 }
                 case '\n':
                 case ';':
-                    if (!root->childs.empty()) {
+                    if (!root->children.empty()) {
                         try {
-                            cout << " = " << root->childs[0]->getValue() << endl;
+                            cout << " = " << root->children[0]->getValue() << endl;
                         } catch (out_of_range &e) {
                             cout << "syntax error" << endl;
                         } catch (runtime_error &e) {
@@ -368,13 +353,12 @@ public:
 };
 
 int main() {
-    auto *s = new SyntaxTree();
-    cout << "> ";
-    while (s->parseFromStdIn()) {
+    SyntaxTree *s = nullptr;
+    do {
         cout << "> ";
         delete s;
         s = new SyntaxTree();
-    }
+    } while (s->parseFromStdIn());
     delete s;
     return 0;
 }
