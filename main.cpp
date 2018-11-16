@@ -50,15 +50,15 @@ private:
                 case TYPE_ID_VALUE:
                     return 1;
                 case TYPE_ID_FACTORIAL:
-                    return 3;
+                    return 2;
                 case TYPE_ID_POWER:
-                    return 4;
+                    return 3;
                 case TYPE_ID_TIMES:
                 case TYPE_ID_DIVIDE:
-                    return 5;
+                    return 4;
                 case TYPE_ID_PLUS:
                 case TYPE_ID_MINUS:
-                    return 6;
+                    return 5;
                 default:
                     throw runtime_error{"Unknown Operator Type"};
             }
@@ -257,9 +257,9 @@ private:
         return false;
     }
 
-    void deleteIterator(OperatorNode *node) {
+    void destructorIterator(OperatorNode *node) {
         for (OperatorNode *i : node->children)
-            deleteIterator(i);
+            destructorIterator(i);
         delete node;
     }
 
@@ -268,7 +268,7 @@ public:
     SyntaxTree() = default;
 
     ~SyntaxTree() {
-        deleteIterator(root);
+        destructorIterator(root);
     }
 
     bool parseFromStdIn() {
