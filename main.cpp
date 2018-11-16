@@ -271,44 +271,54 @@ public:
         destructorIterator(root);
     }
 
-    bool parseFromStdIn() {
+    void parseFromCinRepeatedly() {
+        do {
+            cout << "> ";
+            destructorIterator(root);
+            root = new OperatorLeftBracket();
+        } while (parseFromCin());
+    }
+
+    bool parseFromCin() {
         while (true) {
             char ch{' '};
             cin.get(ch);
-            bool flag{true};
-            OperatorNode *tmp;
+            bool no_error_flag{true};
+            OperatorNode *tmp = nullptr;
             switch (ch) {
+                case 'q':
+                    return false;
                 case '+':
                     tmp = new OperatorPlus();
-                    flag = root->addChild(tmp);
+                    no_error_flag = root->addChild(tmp);
                     break;
                 case '-':
                     tmp = new OperatorMinus();
-                    flag = root->addChild(tmp);
+                    no_error_flag = root->addChild(tmp);
                     break;
                 case '*':
                     tmp = new OperatorTimes();
-                    flag = root->addChild(tmp);
+                    no_error_flag = root->addChild(tmp);
                     break;
                 case '/':
                     tmp = new OperatorDivide();
-                    flag = root->addChild(tmp);
+                    no_error_flag = root->addChild(tmp);
                     break;
                 case '^':
                     tmp = new OperatorPower();
-                    flag = root->addChild(tmp);
+                    no_error_flag = root->addChild(tmp);
                     break;
                 case '!':
                     tmp = new OperatorFactorial();
-                    flag = root->addChild(tmp);
+                    no_error_flag = root->addChild(tmp);
                     break;
                 case '(':
                     tmp = new OperatorLeftBracket();
-                    flag = root->addChild(tmp);
+                    no_error_flag = root->addChild(tmp);
                     break;
                 case ')':
                     tmp = new OperatorRightBracket();
-                    flag = root->addChild(tmp);
+                    no_error_flag = root->addChild(tmp);
                     break;
                 case '.':
                 case '0':
@@ -325,11 +335,10 @@ public:
                     double val{0};
                     cin >> val;
                     tmp = new OperatorValue(val);
-                    flag = root->addChild(tmp);
+                    no_error_flag = root->addChild(tmp);
                     break;
                 }
                 case '\n':
-                case ';':
                     if (!root->children.empty()) {
                         try {
                             cout << " = " << root->children[0]->getValue() << endl;
@@ -340,11 +349,19 @@ public:
                         }
                     }
                     return true;
+                case ';':
+                    break;
                 default:
-                    return false;
+                    no_error_flag = false;
+                    cout << "unknown char: " << ch << endl;
             }
-            if (!flag) {
+
+            if (!no_error_flag) {
                 delete tmp;
+                char ignoredInput{' '};
+                do {
+                    cin.get(ignoredInput);
+                } while (ignoredInput != '\n');
                 cout << "Syntax error" << endl;
                 return true;
             }
@@ -353,12 +370,7 @@ public:
 };
 
 int main() {
-    SyntaxTree *s = nullptr;
-    do {
-        cout << "> ";
-        delete s;
-        s = new SyntaxTree();
-    } while (s->parseFromStdIn());
-    delete s;
+    SyntaxTree s;
+    s.parseFromCinRepeatedly();
     return 0;
 }
